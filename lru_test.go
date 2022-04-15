@@ -6,23 +6,19 @@ import (
 )
 
 func TestLRU(t *testing.T) {
-	l := NewLRU(15)
-	for i := 1; i <= 10; i++ {
+	l := NewLRU(5)
+	for i := 1; i <= 5; i++ {
 		l.Inc(fmt.Sprintf("key%v", i))
 	}
-	for i := 1; i <= 4; i++ {
-		l.Inc(fmt.Sprintf("key%v", i))
-		for j := 1; j <= i; j++ {
+	for i := 1; i <= 5; i++ {
+		for j := 1; j <= 100-i; j++ {
 			l.Inc(fmt.Sprintf("key%v", i))
 		}
 	}
-	for i := 6; i <= 10; i++ {
-		l.Inc(fmt.Sprintf("key%v", i))
-		for j := 1; j <= i; j++ {
-			l.Inc(fmt.Sprintf("key%v", i))
-		}
+	for i := 1; i <= 100; i++ {
+		l.Inc("key6")
 	}
-	if l.Least() != "key5" {
-		t.Errorf("Wrong result, must be key5")
+	if l.Least() != "key4" {
+		t.Error("Least recent use key must be key4")
 	}
 }

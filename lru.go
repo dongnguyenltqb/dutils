@@ -19,23 +19,32 @@ type LRU struct {
 	heap  *lruHeap
 	p     map[string]*uint
 	count map[string]uint
+	max   uint
 }
 
 func NewLRU(NMax uint) *LRU {
 	lru := &LRU{
 		heap: &lruHeap{
 			leng:  0,
-			value: make([]lruHeapItem, NMax),
+			value: make([]lruHeapItem, NMax+1),
 		},
 		count: make(map[string]uint, 0),
 		p:     make(map[string]*uint, 0),
+		max:   NMax,
 	}
 	lru.heap.lru = lru
 	return lru
 }
 
+// Increase usage for given key
 func (l *LRU) Inc(key string) {
 	if l.p[key] == nil {
+		// check capacity
+		if l.heap.leng >= l.max {
+			l.drop()
+			l.Inc(key)
+			return
+		}
 		// insert new item to lru heap
 		l.count[key] = 1
 		l.heap.Insert(lruHeapItem{
@@ -51,8 +60,16 @@ func (l *LRU) Inc(key string) {
 	}
 }
 
+// Get least recently used key
 func (l *LRU) Least() string {
 	return l.heap.value[1].key
+}
+
+func (l *LRU) drop() {
+	key := l.heap.Root()
+	delete(l.count, key.key)
+	delete(l.count, key.key)
+	l.heap.RemoveRoot()
 }
 
 func (l *LRU) updatePostition(key string, i uint) {
@@ -109,10 +126,14 @@ func (h *lruHeap) DownHeap(i uint) *lruHeap {
 }
 
 func (h *lruHeap) RemoveRoot() *lruHeap {
-	h.value[1] = h.value[h.leng]
+	h.swap(h.leng, 1)
 	h.leng--
 	if h.leng > 1 {
 		h.DownHeap(1)
 	}
 	return h
+}
+
+func (h *lruHeap) Root() lruHeapItem {
+	return h.value[1]
 }
