@@ -39,24 +39,21 @@ func NewLRU(NMax uint) *LRU {
 // Increase usage for given key
 func (l *LRU) Inc(key string) {
 	if l.p[key] == nil {
-		// check capacity
 		if l.heap.leng >= l.max {
 			l.drop()
 			l.Inc(key)
 			return
 		}
-		// insert new item to lru heap
 		l.count[key] = 1
-		l.heap.Insert(lruHeapItem{
+		l.heap.insert(lruHeapItem{
 			key: key,
 			v:   1,
 		})
 	} else {
-		// get current value
 		l.count[key] = l.count[key] + 1
 		p := l.p[key]
 		l.heap.value[*p].v += 1
-		l.heap.DownHeap(*p)
+		l.heap.downHeap(*p)
 	}
 }
 
@@ -66,34 +63,32 @@ func (l *LRU) Least() string {
 }
 
 func (l *LRU) drop() {
-	key := l.heap.Root()
+	key := l.heap.root()
 	delete(l.count, key.key)
 	delete(l.count, key.key)
-	l.heap.RemoveRoot()
+	l.heap.removeRoot()
 }
 
 func (l *LRU) updatePostition(key string, i uint) {
 	l.p[key] = &i
 }
 
-func (h *lruHeap) Insert(x lruHeapItem) *lruHeap {
+func (h *lruHeap) insert(x lruHeapItem) *lruHeap {
 	h.leng = h.leng + 1
 	h.value[h.leng] = x
 	p := h.leng
 	h.lru.updatePostition(x.key, p)
-	h.UpHeap(h.leng)
+	h.upHeap(h.leng)
 	return h
 }
 
-func (h *lruHeap) UpHeap(i uint) *lruHeap {
-	// parent node
+func (h *lruHeap) upHeap(i uint) *lruHeap {
 	k := uint(math.Floor(float64(i) / 2))
-
 	if i == 1 || h.value[k].v < h.value[i].v {
 		return h
 	}
 	h.swap(i, k)
-	h.UpHeap(k)
+	h.upHeap(k)
 	return h
 }
 
@@ -107,7 +102,7 @@ func (h *lruHeap) swap(i, j uint) *lruHeap {
 	return h
 }
 
-func (h *lruHeap) DownHeap(i uint) *lruHeap {
+func (h *lruHeap) downHeap(i uint) *lruHeap {
 	m := i * 2
 	if m > h.leng {
 		return h
@@ -118,22 +113,22 @@ func (h *lruHeap) DownHeap(i uint) *lruHeap {
 	if h.value[m].v < h.value[i].v {
 		// switch two node
 		h.swap(m, i)
-		h.DownHeap(m)
+		h.downHeap(m)
 		return h
 
 	}
 	return h
 }
 
-func (h *lruHeap) RemoveRoot() *lruHeap {
+func (h *lruHeap) removeRoot() *lruHeap {
 	h.swap(h.leng, 1)
 	h.leng--
 	if h.leng > 1 {
-		h.DownHeap(1)
+		h.downHeap(1)
 	}
 	return h
 }
 
-func (h *lruHeap) Root() lruHeapItem {
+func (h *lruHeap) root() lruHeapItem {
 	return h.value[1]
 }
