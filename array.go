@@ -20,13 +20,16 @@ func (h *Heap[T]) Insert(x T) *Heap[T] {
 }
 
 func (h *Heap[T]) UpHeap(i int) *Heap[T] {
-	if i == 1 || h.compare(h.value[int(math.Floor(float64(i)/2))], h.value[i]) <= 0 {
+	// parent node
+	k := int(math.Floor(float64(i) / 2))
+
+	if i == 1 || h.compare(h.value[k], h.value[i]) <= 0 {
 		return h
 	}
 	t := h.value[i]
-	h.value[i] = h.value[int(math.Floor(float64(i)/2))]
-	h.value[int(math.Floor(float64(i)/2))] = t
-	h.UpHeap(int(math.Floor(float64(i) / 2)))
+	h.value[i] = h.value[k]
+	h.value[k] = t
+	h.UpHeap(k)
 	return h
 }
 
@@ -39,11 +42,13 @@ func (h *Heap[T]) DownHeap(i int) *Heap[T] {
 		m++
 	}
 	if h.compare(h.value[m], h.value[i]) < 0 {
+
 		t := h.value[m]
 		h.value[m] = h.value[i]
 		h.value[i] = t
 		h.DownHeap(m)
 		return h
+
 	}
 	return h
 }
